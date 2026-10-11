@@ -149,7 +149,7 @@ function Quote() {
             <span>
               Autorizo o uso dos dados informados para contato sobre este orçamento, conforme a{" "}
               <a href="/privacidade" className="underline">Política de Privacidade</a>.
-              {errors.consent && <span className="block text-xs text-destructive">{errors.consent}</span>}
+              {errors["consent"] && <span className="block text-xs text-destructive">{errors["consent"]}</span>}
             </span>
           </label>
           <button type="submit" className={btnClass({ size: "lg", className: "sm:col-span-2" })}>
