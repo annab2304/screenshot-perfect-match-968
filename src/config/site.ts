@@ -5,11 +5,10 @@ export const site = {
   owner: "nuv.",
   area: "Atendimento online, em todo o Brasil",
   whatsapp: {
-    // Link público atual (QR). Não aceita mensagem pré-preenchida.
-    qrLink: "https://wa.me/qr/OGN3PX26JF3VL1",
-    // Quando houver número com DDD, preencha (ex.: "5511999999999") para
-    // abrir wa.me com o resumo do orçamento já escrito.
-    number: "" as string,
+    // Link direto para a conversa (wa.me com número). Abre o chat no app.
+    qrLink: "https://wa.me/5511988266483",
+    // Número com DDI+DDD; usado para abrir wa.me com o resumo do orçamento já escrito.
+    number: "5511988266483",
   },
   email: "" as string, // ainda não configurado
   instagram: "" as string, // ainda não configurado
