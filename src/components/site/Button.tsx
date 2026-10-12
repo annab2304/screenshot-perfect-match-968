@@ -22,5 +22,5 @@ export type BtnProps = VariantProps<typeof btn>;
 export const btnClass = (p: BtnProps & { className?: string }) => cn(btn(p), p.className);
 
 export function SiteButton({ variant, size, className, ...props }: ButtonHTMLAttributes<HTMLButtonElement> & BtnProps) {
-  return <button className={btnClass({ variant, size, className })} {...props} />;
+  return <button className={cn(btn({ variant, size }), className)} {...props} />;
 }

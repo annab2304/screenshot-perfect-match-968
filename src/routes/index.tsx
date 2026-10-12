@@ -205,7 +205,7 @@ function HowItWorks() {
 }
 
 function Portfolio() {
-  const demoUrlSchema = z.string().trim().max(2048).url().refine((url) => new URL(url).protocol === "https:");
+  const demoUrlSchema = z.string().trim().max(2048).url().refine((url) => url.startsWith("https://"));
   const demoUrl = (value: string) => {
     const result = demoUrlSchema.safeParse(value);
     return result.success ? result.data : undefined;
