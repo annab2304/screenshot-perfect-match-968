@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { Copy, Check, MessageCircle } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
-import { btnClass } from "@/components/site/Button";
+import { btnClass, SiteButton } from "@/components/site/Button";
 import { packages, formatPrice, site, type PackageId } from "@/config/site";
 import { track } from "@/lib/track";
 
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/orcamento")({
 const formSchema = z.object({
   nome: z.string().trim().min(2, "Informe seu nome completo").max(100),
   empresa: z.string().trim().min(1, "Informe o nome da empresa").max(100),
-  whatsapp: z.string().trim().regex(/^[\d\s()+-]{10,20}$/, "WhatsApp inválido (com DDD)"),
+   whatsapp: z.string().trim().max(20).regex(/^[\d\s()+-]+$/, "WhatsApp inválido (com DDD)").refine((value) => /^\d{10,13}$/.test(value.replace(/\D/g, "")), "Informe um WhatsApp válido com DDD"),
   email: z.string().trim().email("E-mail inválido").max(255),
   segmento: z.string().trim().min(2, "Informe o segmento").max(100),
   atual: z.string().trim().max(200).optional(),
@@ -57,16 +57,25 @@ const fields: { k: keyof Form; label: string; type?: string; area?: boolean; opt
 function Quote() {
   const { pacote } = Route.useSearch();
   const [pkg, setPkg] = useState<PackageId>(pacote ?? "profissional");
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(fields.map(({ k }) => [k, ""])));
   const [consent, setConsent] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [summary, setSummary] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const selected = packages.find((p) => p.id === pkg)!;
+  const [copyError, setCopyError] = useState("");
+  const selected = packages.find((p) => p.id === pkg);
+  if (!selected) return null;
+
+  function invalidateSummary() {
+    setSummary(null);
+    setCopied(false);
+    setCopyError("");
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (!selected) return;
     if (honeypot) return; // proteção anti-spam
     const r = formSchema.safeParse({ ...values, consent });
     if (!r.success) {
@@ -93,19 +102,25 @@ function Quote() {
       d.obs && `Observações: ${d.obs}`,
     ].filter(Boolean).join("\n");
     setSummary(text);
+    setCopied(false);
+    setCopyError("");
     track("quote_summary_generated", { package: pkg, value: selected.price, currency: "BRL" });
     setTimeout(() => document.getElementById("resumo")?.scrollIntoView({ behavior: "smooth" }), 50);
   }
 
-  const waHref = summary && site.whatsapp.number
+  const waHref = summary && /^\d{10,15}$/.test(site.whatsapp.number)
     ? `https://wa.me/${site.whatsapp.number}?text=${encodeURIComponent(summary)}`
     : site.whatsapp.qrLink;
 
   async function copy() {
     if (!summary) return;
-    await navigator.clipboard.writeText(summary);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    try {
+      await navigator.clipboard.writeText(summary);
+      setCopied(true);
+      setCopyError("");
+    } catch {
+      setCopyError("Não foi possível copiar automaticamente. Selecione e copie o pedido abaixo.");
+    }
   }
 
   const input = "mt-2 w-full rounded-xl border border-input bg-card px-4 py-3 text-base outline-none transition focus:border-ink";
@@ -115,72 +130,76 @@ function Quote() {
       <section className="mx-auto max-w-3xl px-5 py-16">
         <p className="eyebrow text-nude-deep">Solicitar orçamento</p>
         <h1 className="display mt-4 text-4xl sm:text-5xl">Conte sobre o seu projeto.</h1>
+        <p className="mt-5 text-muted-foreground">Este formulário apenas prepara seu pedido. <strong className="text-foreground">Gerar o resumo não envia a solicitação.</strong> Para solicitar o orçamento, copie o pedido e envie na conversa com a nuv. pelo WhatsApp.</p>
 
         <div className="mt-10 grid gap-3 sm:grid-cols-3">
           {packages.map((p) => (
-            <button
+            <SiteButton
+              variant="plain"
               key={p.id}
               type="button"
-              onClick={() => { setPkg(p.id); track("select_package", { package: p.id, value: p.price, currency: "BRL" }); }}
-              className={`rounded-2xl border p-4 text-left transition ${pkg === p.id ? "border-ink bg-ink text-ink-foreground" : "border-border bg-card hover:border-ink"}`}
+              onClick={() => { setPkg(p.id); invalidateSummary(); track("select_package", { package: p.id, value: p.price, currency: "BRL" }); }}
+              className={`h-auto min-h-24 flex-col items-start gap-0 rounded-2xl border p-4 text-left transition ${pkg === p.id ? "border-ink bg-ink text-ink-foreground" : "border-border bg-card hover:border-ink"}`}
               aria-pressed={pkg === p.id}
             >
               <span className="block text-sm font-semibold">{p.name}</span>
               <span className="mt-1 block text-2xl font-extrabold">{formatPrice(p.price)}</span>
-            </button>
+            </SiteButton>
           ))}
         </div>
 
-        <form onSubmit={submit} noValidate className="mt-10 grid gap-5 sm:grid-cols-2">
+        <form onSubmit={submit} onChange={invalidateSummary} noValidate className="mt-10 grid gap-5 sm:grid-cols-2">
           <input type="text" tabIndex={-1} autoComplete="off" value={honeypot} onChange={(e) => setHoneypot(e.target.value)} className="hidden" aria-hidden="true" />
           {fields.map((f) => (
             <label key={f.k} className={`block text-sm font-semibold ${f.area ? "sm:col-span-2" : ""}`}>
               {f.label} {f.optional && <span className="font-normal text-muted-foreground">(opcional)</span>}
               {f.area ? (
-                <textarea rows={3} className={input} value={values[f.k] ?? ""} onChange={(e) => setValues({ ...values, [f.k]: e.target.value })} maxLength={1000} />
+                <textarea name={f.k} rows={3} required={!f.optional} aria-invalid={Boolean(errors[f.k])} aria-describedby={errors[f.k] ? `error-${f.k}` : undefined} className={input} value={values[f.k] ?? ""} onChange={(e) => setValues({ ...values, [f.k]: e.target.value })} maxLength={1000} />
               ) : (
-                <input type={f.type ?? "text"} className={input} value={values[f.k] ?? ""} onChange={(e) => setValues({ ...values, [f.k]: e.target.value })} maxLength={255} />
+                <input name={f.k} required={!f.optional} aria-invalid={Boolean(errors[f.k])} aria-describedby={errors[f.k] ? `error-${f.k}` : undefined} type={f.type ?? "text"} className={input} value={values[f.k] ?? ""} onChange={(e) => setValues({ ...values, [f.k]: e.target.value })} maxLength={f.k === "email" ? 255 : f.k === "whatsapp" ? 20 : f.k === "atual" ? 200 : 100} />
               )}
-              {errors[f.k] && <span className="mt-1 block text-xs font-normal text-destructive">{errors[f.k]}</span>}
+              {errors[f.k] && <span id={`error-${f.k}`} role="alert" className="mt-1 block text-xs font-normal text-destructive">{errors[f.k]}</span>}
             </label>
           ))}
           <label className="flex gap-3 text-sm sm:col-span-2">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-ink" />
             <span>
               Autorizo o uso dos dados informados para contato sobre este orçamento, conforme a{" "}
-              <a href="/privacidade" className="underline">Política de Privacidade</a>.
+              <Link to="/privacidade" className="underline">Política de Privacidade</Link>.
               {errors["consent"] && <span className="block text-xs text-destructive">{errors["consent"]}</span>}
             </span>
           </label>
-          <button type="submit" className={btnClass({ size: "lg", className: "sm:col-span-2" })}>
+           <SiteButton type="submit" size="lg" className="h-auto min-h-14 px-4 py-3 text-center sm:col-span-2">
             Gerar resumo do pedido
-          </button>
+           </SiteButton>
         </form>
 
         {summary && (
-          <div id="resumo" className="mt-12 rounded-3xl bg-ink p-8 text-ink-foreground fade-up">
+          <div id="resumo" className="mt-12 scroll-mt-24 rounded-3xl bg-ink p-5 text-ink-foreground fade-up sm:p-8">
             <p className="eyebrow text-nude">Último passo</p>
             <h2 className="mt-3 text-2xl font-bold">Envie seu pedido pelo WhatsApp</h2>
+            <p role="status" className="mt-4 font-semibold text-nude">Pedido preparado — solicitação ainda não enviada.</p>
             <p className="mt-3 text-sm text-ink-foreground/70">
               {site.whatsapp.number
                 ? "Ao abrir o WhatsApp, a mensagem já virá preenchida. Basta tocar em enviar."
                 : "Seu pedido ainda não foi enviado. Copie o resumo abaixo, abra o WhatsApp da nuv. e cole a mensagem na conversa."}
             </p>
-            <pre className="mt-6 max-h-72 overflow-auto whitespace-pre-wrap rounded-2xl bg-graphite p-5 text-sm">{summary}</pre>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <button onClick={copy} className={btnClass({ variant: "ghostLight" })}>
-                {copied ? <Check size={16} /> : <Copy size={16} />} {copied ? "Resumo copiado" : "Copiar resumo"}
-              </button>
+              <SiteButton onClick={copy} variant="ghostLight" className="h-auto min-h-12 px-4 py-3">
+                {copied ? <Check size={16} /> : <Copy size={16} />} {copied ? "Pedido copiado" : "Copiar pedido"}
+              </SiteButton>
               <a
                 href={waHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => track("quote_sent_whatsapp", { package: pkg, value: selected.price, currency: "BRL" })}
-                className={btnClass({ variant: "nude" })}
+                onClick={() => track("quote_whatsapp_opened", { package: pkg, value: selected.price, currency: "BRL" })}
+                className={btnClass({ variant: "nude", className: "h-auto min-h-12 px-4 py-3 text-center" })}
               >
-                <MessageCircle size={16} /> Abrir WhatsApp da nuv.
+                <MessageCircle size={16} className="shrink-0" /> Abrir WhatsApp para enviar
               </a>
             </div>
+            {copyError && <p role="alert" className="mt-4 text-sm text-nude">{copyError}</p>}
+            <pre className="mt-6 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-2xl bg-graphite p-5 text-sm">{summary}</pre>
           </div>
         )}
       </section>

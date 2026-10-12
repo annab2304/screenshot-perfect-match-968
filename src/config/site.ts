@@ -2,7 +2,7 @@
 export const site = {
   name: "nuv.",
   slogan: "Sites que impulsionam seu negócio.",
-  owner: "Anna Beatriz",
+  owner: "nuv.",
   area: "Atendimento online, em todo o Brasil",
   whatsapp: {
     // Link público atual (QR). Não aceita mensagem pré-preenchida.
@@ -20,6 +20,8 @@ export const site = {
   },
   portfolio: {
     studioJanaLashUrl: "" as string, // link do protótipo, quando disponível
+    landingPageUrl: "" as string,
+    institucionalUrl: "" as string,
   },
 };
 

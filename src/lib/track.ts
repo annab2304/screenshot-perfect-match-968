@@ -4,7 +4,7 @@ type EventName =
   | "whatsapp_click" // clique de contato (não é contratação)
   | "select_package"
   | "quote_summary_generated" // formulário preenchido e resumo gerado
-  | "quote_sent_whatsapp"; // cliente abriu o WhatsApp com o resumo
+  | "quote_whatsapp_opened"; // abertura do WhatsApp, sem confirmação de envio
 
 export function track(event: EventName, params: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
