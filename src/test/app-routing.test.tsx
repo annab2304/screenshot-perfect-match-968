@@ -18,7 +18,8 @@ describe("App routing", () => {
 
   it("preserves commercial identity, WhatsApp and package prices", () => {
     expect(site.owner).toBe("nuv.");
-    expect(site.whatsapp.qrLink).toBe("https://wa.me/qr/OGN3PX26JF3VL1");
+    expect(site.whatsapp.qrLink).toBe("https://wa.me/5511988266483");
+    expect(site.whatsapp.number).toBe("5511988266483");
     expect(packages.map(({ price }) => price)).toEqual([249, 399, 499]);
   });
 });
