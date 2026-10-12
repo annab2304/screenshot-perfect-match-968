@@ -165,7 +165,7 @@ function Quote() {
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-1 h-4 w-4 accent-ink" />
             <span>
               Autorizo o uso dos dados informados para contato sobre este orçamento, conforme a{" "}
-              <Link to="/privacidade" className="underline">Política de Privacidade
+              <Link to="/privacidade" className="underline">Política de Privacidade</Link>.
               {errors["consent"] && <span className="block text-xs text-destructive">{errors["consent"]}</span>}
             </span>
           </label>
