@@ -57,7 +57,7 @@ const fields: { k: keyof Form; label: string; type?: string; area?: boolean; opt
 function Quote() {
   const { pacote } = Route.useSearch();
   const [pkg, setPkg] = useState<PackageId>(pacote ?? "profissional");
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(fields.map(({ k }) => [k, ""])));
   const [consent, setConsent] = useState(false);
   const [honeypot, setHoneypot] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
