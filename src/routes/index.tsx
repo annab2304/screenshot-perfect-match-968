@@ -3,7 +3,8 @@ import { useState } from "react";
 import { ArrowRight, Check, Plus, Minus, Tag, Smartphone, Palette, MessageCircle } from "lucide-react";
 import { SiteLayout } from "@/components/site/Layout";
 import { Logo } from "@/components/site/Logo";
-import { btnClass } from "@/components/site/Button";
+import { btnClass, SiteButton } from "@/components/site/Button";
+import { z } from "zod";
 import { packages, formatPrice, site } from "@/config/site";
 import { track } from "@/lib/track";
 import hero from "@/assets/hero-mockup.jpg";
@@ -109,15 +110,15 @@ function Pricing() {
           {packages.map((p) => (
             <article
               key={p.id}
-              className={`flex flex-col rounded-3xl p-8 ${
+              className={`flex min-w-0 flex-col rounded-3xl p-6 sm:p-8 ${
                 p.featured ? "bg-paper text-ink" : "border border-ink-foreground/15 bg-graphite/40"
               }`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-xl font-bold">{p.name}</h3>
                 {p.featured && <span className="eyebrow rounded-full bg-nude px-3 py-1 text-[0.6rem] text-ink">Mais completo</span>}
               </div>
-              <p className="mt-6 text-6xl font-extrabold tracking-tight">{formatPrice(p.price)}</p>
+              <p className="mt-6 text-5xl font-extrabold sm:text-6xl">{formatPrice(p.price)}</p>
               <p className={`mt-2 text-xs ${p.featured ? "text-muted-foreground" : "text-ink-foreground/60"}`}>
                 pagamento único pelo desenvolvimento
               </p>
@@ -136,7 +137,7 @@ function Pricing() {
                 to="/orcamento"
                 search={{ pacote: p.id }}
                 onClick={() => track("select_package", { package: p.id, value: p.price, currency: "BRL" })}
-                className={btnClass({ variant: p.featured ? "ink" : "nude", className: "mt-6 w-full" })}
+                className={btnClass({ variant: p.featured ? "ink" : "nude", className: "mt-6 h-auto min-h-12 w-full px-4 py-3 text-center" })}
               >
                 {p.cta}
               </Link>
@@ -204,10 +205,15 @@ function HowItWorks() {
 }
 
 function Portfolio() {
+  const demoUrlSchema = z.string().trim().max(2048).url().refine((url) => new URL(url).protocol === "https:");
+  const demoUrl = (value: string) => {
+    const result = demoUrlSchema.safeParse(value);
+    return result.success ? result.data : undefined;
+  };
   const items = [
-    { img: pBeauty, t: "Site para studio de beleza", d: "Página de serviços, galeria e agendamento online.", link: site.portfolio.studioJanaLashUrl },
-    { img: pLanding, t: "Landing page comercial", d: "Página para apresentação de produtos e serviços.", link: "" },
-    { img: pInst, t: "Site institucional", d: "Apresentação profissional de empresas e pequenos negócios.", link: "" },
+    { img: pBeauty, t: "Site para studio de beleza", d: "Página de serviços, galeria e agendamento online.", link: demoUrl(site.portfolio.studioJanaLashUrl) },
+    { img: pLanding, t: "Landing page comercial", d: "Página para apresentação de produtos e serviços.", link: demoUrl(site.portfolio.landingPageUrl) },
+    { img: pInst, t: "Site institucional", d: "Apresentação profissional de empresas e pequenos negócios.", link: demoUrl(site.portfolio.institucionalUrl) },
   ];
   return (
     <section id="portfolio" className="py-24">
@@ -228,7 +234,7 @@ function Portfolio() {
                 </div>
                 {p.link && (
                   <a href={p.link} target="_blank" rel="noopener noreferrer" className={btnClass({ variant: "outline", size: "sm" })}>
-                    Ver protótipo <ArrowRight size={14} />
+                    Ver demonstração <ArrowRight size={14} />
                   </a>
                 )}
               </figcaption>
@@ -279,14 +285,15 @@ function Faq() {
         <div className="divide-y divide-border border-y border-border">
           {faqs.map(([q, a], i) => (
             <div key={q}>
-              <button
-                className="flex w-full items-center justify-between gap-4 py-5 text-left font-semibold"
+              <SiteButton
+                variant="plain"
+                className="h-auto w-full justify-between gap-4 rounded-none px-0 py-5 text-left text-base font-semibold"
                 aria-expanded={open === i}
                 onClick={() => setOpen(open === i ? null : i)}
               >
                 {q}
                 {open === i ? <Minus size={18} className="shrink-0" /> : <Plus size={18} className="shrink-0" />}
-              </button>
+              </SiteButton>
               {open === i && <p className="pb-5 text-muted-foreground fade-up">{a}</p>}
             </div>
           ))}

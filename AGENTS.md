@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Keep commercial contact and all three optional portfolio demonstration URLs in the central site configuration so pages stay consistent.
+- Use the shared SiteButton and btnClass for site controls and links to preserve the existing visual system.
+- The quote form generates a validated browser-only summary, never submits or stores requests; invalidate the summary when fields change to avoid stale requests.

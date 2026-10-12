@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import { Menu, X, MessageCircle } from "lucide-react";
 import { Logo } from "./Logo";
-import { btnClass } from "./Button";
+import { btnClass, SiteButton } from "./Button";
 import { site } from "@/config/site";
 import { track } from "@/lib/track";
 
@@ -23,7 +23,7 @@ function Header() {
         <Link to="/" className="text-3xl" aria-label="nuv. — início">
           <Logo />
         </Link>
-        <nav className="hidden items-center gap-7 text-sm font-medium md:flex">
+        <nav className="hidden items-center gap-7 text-sm font-medium lg:flex">
           {nav.map((n) => (
             <a key={n.href} href={n.href} className="text-muted-foreground transition-colors hover:text-foreground">
               {n.label}
@@ -34,18 +34,20 @@ function Header() {
           <Link to="/orcamento" className={btnClass({ size: "sm", className: "hidden sm:inline-flex" })}>
             Solicitar orçamento
           </Link>
-          <button
-            className="grid h-10 w-10 place-items-center rounded-full md:hidden"
+          <SiteButton
+            variant="plain"
+            className="h-11 w-11 shrink-0 p-0 lg:hidden"
             onClick={() => setOpen(!open)}
             aria-label={open ? "Fechar menu" : "Abrir menu"}
             aria-expanded={open}
+            aria-controls="mobile-navigation"
           >
             {open ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          </SiteButton>
         </div>
       </div>
       {open && (
-        <nav className="border-t border-border bg-background px-5 pb-6 pt-2 md:hidden">
+        <nav id="mobile-navigation" className="max-h-[calc(100dvh-4rem)] overflow-y-auto border-t border-border bg-background px-5 pb-6 pt-2 lg:hidden">
           {nav.map((n) => (
             <a key={n.href} href={n.href} onClick={() => setOpen(false)} className="block border-b border-border/60 py-4 text-lg font-semibold">
               {n.label}
@@ -87,7 +89,7 @@ function Footer() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-ink-foreground/10 py-6 text-center text-xs text-ink-foreground/50">
+      <div className="border-t border-ink-foreground/10 pb-24 pt-6 text-center text-xs text-ink-foreground/50 sm:py-6">
         © {new Date().getFullYear()} nuv. Todos os direitos reservados.
       </div>
     </footer>
@@ -101,11 +103,11 @@ function WhatsAppFloat() {
       target="_blank"
       rel="noopener noreferrer"
       onClick={() => track("whatsapp_click", { place: "floating" })}
-      className="fixed bottom-5 right-5 z-50 inline-flex h-14 items-center gap-2 rounded-full bg-ink px-5 text-sm font-semibold text-ink-foreground shadow-2xl ring-1 ring-nude/40 transition-transform hover:-translate-y-0.5"
+      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-4 z-30 inline-flex h-12 w-12 items-center justify-center gap-2 rounded-full bg-ink text-sm font-semibold text-ink-foreground shadow-2xl ring-1 ring-nude/40 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:right-5 sm:h-14 sm:w-auto sm:px-5"
       aria-label="Fale com a nuv. pelo WhatsApp"
     >
       <MessageCircle size={20} className="text-nude" />
-      <span>Fale com a nuv.</span>
+      <span className="hidden sm:inline">Fale com a nuv.</span>
     </a>
   );
 }
