@@ -117,7 +117,7 @@ function RootShell({ children }: { children: ReactNode }) {
               gtag('js', new Date());
               gtag('config', 'AW-18502286724');
             `,
-          }}
+          }
         />
       </head>
 
